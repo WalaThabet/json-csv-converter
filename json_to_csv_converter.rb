@@ -12,7 +12,7 @@ class JSONToCSVConverter
         headers = @parsed_json.map {|row| get_keys(row) }.uniq.flatten
         # Header row
         csv << headers
-        parsed_json.each do |item|
+        @parsed_json.each do |item|
           row = []
           headers.each do |header|
             row << get_row_values(item, header)
@@ -51,7 +51,7 @@ class JSONToCSVConverter
     current_value
   end
 
-  def self.get_row_values(item, header)
+  def get_row_values(item, header)
     keys = header.split('.')
     if item.is_a?(Hash)
       value = get_nested_values(item, header)
@@ -79,3 +79,6 @@ class JSONToCSVConverter
     end
   end
 end
+
+converter = JSONToCSVConverter.new
+converter.convert_json_to_csv
