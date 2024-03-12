@@ -3,23 +3,25 @@ require 'csv'
 
 class JSONToCSVConverter
   def initialize
-    input_file_path = 'input_json_files/users.json'
-    file_content = File.read(input_file_path)
-    @parsed_json = JSON.parse(file_content)
+    @parsed_json = read_json_file
   end
 
   def convert_json_to_csv
-    CSV.open("output_csv_files/output.csv", "wb") do |csv|
-      headers = @parsed_json.map {|row| get_keys(row) }.uniq.flatten
-      # Header row
-      csv << headers
-      parsed_json.each do |item|
-        row = []
-        headers.each do |header|
-          row << get_row_values(item, header)
+    begin
+      CSV.open("output_csv_files/output.csv", "wb") do |csv|
+        headers = @parsed_json.map {|row| get_keys(row) }.uniq.flatten
+        # Header row
+        csv << headers
+        @parsed_json.each do |item|
+          row = []
+          headers.each do |header|
+            row << get_row_values(item, header)
+          end
+          csv << row
         end
-        csv << row
       end
+    rescue StandardError => e
+      raise "An error occurred while converting to CSV: #{e.message}"
     end
   end
 
@@ -49,7 +51,7 @@ class JSONToCSVConverter
     current_value
   end
 
-  def self.get_row_values(item, header)
+  def get_row_values(item, header)
     keys = header.split('.')
     if item.is_a?(Hash)
       value = get_nested_values(item, header)
@@ -64,4 +66,19 @@ class JSONToCSVConverter
       item[header]
     end
   end
+
+  def read_json_file
+    begin
+      input_file_path = 'input_json_files/users.json'
+      file_content = File.read(input_file_path)
+      JSON.parse(file_content)
+    rescue JSON::ParserError => e
+      raise "JSON parsing error: #{e.message}"
+    rescue StandardError => e
+      raise "An error occurred while reading the JSON file: #{e.message}"
+    end
+  end
 end
+
+converter = JSONToCSVConverter.new
+converter.convert_json_to_csv
